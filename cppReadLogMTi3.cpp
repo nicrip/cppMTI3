@@ -5,19 +5,43 @@
 
 int main(int argc, char *argv[])
 {
-    char test[10] = {'\xFF', '\xFA', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x07', '\x08'};
-
     std::string filename;
+    unsigned int record_length_ms = 30000;
 
-    if (argc > 1) {
+    if (argc == 2) {
         filename = std::string(argv[1]) + ".mtb";
+    } else if (argc == 3) {
+        filename = std::string(argv[1]) + ".mtb";
+        record_length_ms = (unsigned int)atoi(argv[2]);
     } else {
         filename = "./maglog.mtb";
     }
     std::cout << filename.c_str() << std::endl;
 
     std::fstream fs(filename.c_str(), std::fstream::trunc | std::fstream::binary | std::fstream::out);
-    fs.write(test, sizeof(test));
-    fs.write(test, sizeof(test));
-    fs.write(test, sizeof(test));
+
+    MTi3 mti = MTi3();
+    mti.printDebugMessages(false);
+    bool detect = mti.detect(1000);
+    if (!detect) exit(0);
+    mti.goToConfig();
+    mti.printDeviceInfo();
+    mti.runPrintSelfTest();
+    // mti.setDefaultOptionFlags();
+    mti.printOptionFlags();
+    mti.printAvailableFilterProfiles();
+    mti.printCurrentFilterProfile();
+    // mti.setFilterProfile(51);
+    mti.printOutputConfiguration();
+    mti.printConfiguration();
+    mti.logAck(&fs);
+    mti.goToMeasurement();
+    mti.logAck(&fs);
+    auto start = std::chrono::steady_clock::now();
+    while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() < record_length_ms) {
+        float elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
+        float rem = (record_length_ms/1000.0) - (elapsed/1000.0);
+        std::cout << std::dec << "Time Remaining (s): " << rem << std::endl;
+        mti.readLogMeasurement(&fs);
+    }
 }

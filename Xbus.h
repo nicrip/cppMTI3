@@ -147,8 +147,6 @@ class Xbus {
         
         char datanotif[256];                // Used to store content read from the Notification Pipe
         char datameas[256];                 // Used to store content read from the Measurement Pipe
-
-    private:
         char status[4];                     // Used to store indicators of the Status Pipe
         uint16_t notificationSize;
         uint16_t measurementSize;

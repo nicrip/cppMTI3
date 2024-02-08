@@ -25,6 +25,7 @@ class MTi3 {
         void setDefaultMeasurementOutputConfiguration();
         void setDefaultMagneticOutputConfiguration();
         void printOutputConfiguration();
+        void printConfiguration();
         bool readMeasurement();
         bool readLogMeasurement(std::fstream* fs);
         void logAck(std::fstream* fs);

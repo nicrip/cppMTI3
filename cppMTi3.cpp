@@ -258,10 +258,19 @@ void MTi3::setDefaultMagneticOutputConfiguration() {
 void MTi3::printOutputConfiguration() {
     goToConfig();
 
-    // reset reduced xbus message with extra char for checksum
+    // reqOutputConfiguration reduced xbus message with extra char for checksum
     char reqOutputConfig[4] = {XSENS_CONTROL_PIPE, xbus->MesID::REQOUTPUTCONFIGURATION, '\x00', '\x00'};
     sendMessage(reqOutputConfig, sizeof(reqOutputConfig));
     xbus->readUntilAck(xbus->MesID::OUTPUTCONFIGURATION, 500);
+}
+
+void MTi3::printConfiguration() {
+    goToConfig();
+
+    // reqConfiguration reduced xbus message with extra char for checksum
+    char reqConfig[4] = {XSENS_CONTROL_PIPE, xbus->MesID::REQCONFIGURATION, '\x00', '\x00'};
+    sendMessage(reqConfig, sizeof(reqConfig));
+    xbus->readUntilAck(xbus->MesID::CONFIGURATION, 500);
 }
 
 void MTi3::sendMessage(char *message, uint8_t numBytes) {
@@ -276,11 +285,15 @@ bool MTi3::readMeasurement() {
 bool MTi3::readLogMeasurement(std::fstream* fs) {
     bool new_measurement = xbus->read();
     if (new_measurement) {
-        fs->write(xbus->datameas, sizeof(xbus->datameas));
+        char hdr[2] = {'\xFA', '\xFF'};
+        fs->write(hdr, sizeof(hdr));
+        fs->write(xbus->datameas, xbus->measurementSize);
     }
     return(new_measurement);
 }
 
 void MTi3::logAck(std::fstream* fs) {
-    fs->write(xbus->datanotif, sizeof(xbus->datanotif));
+    char hdr[2] = {'\xFA', '\xFF'};
+    fs->write(hdr, sizeof(hdr));
+    fs->write(xbus->datanotif, xbus->notificationSize);
 }

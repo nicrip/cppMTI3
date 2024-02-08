@@ -16,6 +16,7 @@ int main()
     mti.printAvailableFilterProfiles();
     mti.printCurrentFilterProfile();
     // mti.setFilterProfile(51);
+    mti.printConfiguration();
     mti.printOutputConfiguration();
     // mti.setDefaultMagneticOutputConfiguration();
     // mti.setDefaultMeasurementOutputConfiguration();
