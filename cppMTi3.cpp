@@ -5,7 +5,7 @@
 MTi3::MTi3() {
     address = XSENS_ADDR;
     // start PiGPIO object on local computer
-    gpio_commander = pigpio_start("192.168.1.5", NULL);
+    gpio_commander = pigpio_start(NULL, NULL);
     if (gpio_commander < 0) {
         std::cout << "PiGPIO Failed to Start... Exiting." << std::endl;
         exit(0);
