@@ -12,6 +12,7 @@ int main()
     mti.printDeviceInfo();
     mti.printOptionFlags();
     mti.printAvailableFilterProfiles();
+    // mti.setFilterProfile(51);
     mti.printCurrentFilterProfile();
     mti.setDefaultMeasurementOutputConfiguration();
 }

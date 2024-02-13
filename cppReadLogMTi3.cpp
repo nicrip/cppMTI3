@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     std::fstream fs(filename.c_str(), std::fstream::trunc | std::fstream::binary | std::fstream::out);
 
     MTi3 mti = MTi3();
-    mti.printDebugMessages(false);
+    mti.printDebugMessages(true);
     bool detect = mti.detect(1000);
     if (!detect) exit(0);
     mti.goToConfig();
@@ -34,9 +34,20 @@ int main(int argc, char *argv[])
     // mti.setFilterProfile(51);
     mti.printOutputConfiguration();
     mti.printConfiguration();
-    mti.logAck(&fs);
-    mti.goToMeasurement();
-    mti.logAck(&fs);
+    mti.reset();
+    bool success;
+    success = mti.waitUntilMessage(0x0d, 60000);
+    if (success) {
+        mti.logAck(&fs);
+    } else {
+        exit(0);
+    }
+    success = mti.waitUntilMessage(0x91, 60000);
+    if (success) {
+        mti.logAck(&fs);
+    } else {
+        exit(0);
+    }
     auto start = std::chrono::steady_clock::now();
     while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() < record_length_ms) {
         float elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();

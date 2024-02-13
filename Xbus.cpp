@@ -48,7 +48,7 @@ uint8_t Xbus::readUntilAck(uint8_t opcode, int timeout) {
         readPipeStatus();
         if (notificationSize > 0) { // New notification message available to be read
             readPipeNotif();
-            if (notificationSize <= 256) retcode = parseNotification(datanotif, notificationSize);
+            if (notificationSize <= max_msg_size) retcode = parseNotification(datanotif, notificationSize);
         }
         if (measurementSize > 0) { // New measurement packet available to be read
             readPipeMeas();
@@ -82,7 +82,7 @@ void Xbus::readPipeStatus() {
 
 void Xbus::readPipeNotif() {
     i2c_write_byte(gpio_commander, i2c_handle, XSENS_NOTIF_PIPE);
-    if (notificationSize <= 256) {
+    if (notificationSize <= max_msg_size) {
         i2c_read_device(gpio_commander, i2c_handle, datanotif, notificationSize);
     } else {
         std::cout << "Invalid Notification Msg of Size " << (int)notificationSize << std::endl;
@@ -92,7 +92,7 @@ void Xbus::readPipeNotif() {
     
     // Uncomment to see hex values of notification data
     if (print_raw) {
-        if (notificationSize <= 256) {
+        if (notificationSize <= max_msg_size) {
             uint8_t *datanotif_2;
             datanotif_2 = (uint8_t *)datanotif;
             std::cout << "Notification Msg (Hex): ";
@@ -109,7 +109,7 @@ void Xbus::readPipeNotif() {
 
 void Xbus::readPipeMeas() {
     i2c_write_byte(gpio_commander, i2c_handle, XSENS_MEAS_PIPE);
-    if (measurementSize <= 256) {
+    if (measurementSize <= max_msg_size) {
         i2c_read_device(gpio_commander, i2c_handle, datameas, measurementSize);
     } else {
         std::cout << "Invalid Measurement Msg of Size " << (int)measurementSize << std::endl;
@@ -119,7 +119,7 @@ void Xbus::readPipeMeas() {
     
     // Uncomment to see hex values of measurement data
     if (print_raw) {
-        if (measurementSize <= 256) {
+        if (measurementSize <= max_msg_size) {
             uint8_t *datameas_2;
             datameas_2 = (uint8_t *)datameas;
             std::cout << "Measurement Msg (Hex): ";
@@ -143,9 +143,9 @@ uint8_t Xbus::parseNotification(char *notif, uint8_t notiflength) {
         case (uint8_t)MesID::WAKEUP: {
             std::cout << "--- Received WakeUp Message (0x3E). ---" << std::endl;
             // move to config state on wakeup
-            char wake_ack[4] = {XSENS_CONTROL_PIPE, MesID::WAKEUPACK, '\x00', '\x00'};
-            sendMessage(wake_ack, sizeof(wake_ack));
-            std::cout << "    Sent WakeUp Acknowledgement" << std::endl;
+            // char wake_ack[4] = {XSENS_CONTROL_PIPE, MesID::WAKEUPACK, '\x00', '\x00'};
+            // sendMessage(wake_ack, sizeof(wake_ack));
+            // std::cout << "    Sent WakeUp Acknowledgement" << std::endl;
             wakeState = true;
             return (WAKEUP);
         } case (uint8_t)MesID::GOTOCONFIGACK: {
@@ -288,6 +288,12 @@ uint8_t Xbus::parseNotification(char *notif, uint8_t notiflength) {
             if (profile == 53) std::cout << "north_reference" << std::endl;
             if (profile == 54) std::cout << "vru_general" << std::endl;
             return(REQFILTERPROFILEACK);
+
+        // eMTS
+
+        } case 0x91: {
+            std::cout << "--- Received eMTS Message (0x91) ---" << std::endl;
+            return(0x91);
           
         // Default
         } default: {

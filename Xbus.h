@@ -16,6 +16,8 @@
 #define XSENS_NOTIF_PIPE 0x05   // Use this opcode for reading a notification message
 #define XSENS_MEAS_PIPE 0x06    // Use this opcode for reading measurement data (MTData2 message)
 
+#define max_msg_size 5192
+
 class Xbus {
     public:
         Xbus();
@@ -145,8 +147,8 @@ class Xbus {
 
         bool print_raw;
         
-        char datanotif[256];                // Used to store content read from the Notification Pipe
-        char datameas[256];                 // Used to store content read from the Measurement Pipe
+        char datanotif[max_msg_size];                // Used to store content read from the Notification Pipe
+        char datameas[max_msg_size];                 // Used to store content read from the Measurement Pipe
         char status[4];                     // Used to store indicators of the Status Pipe
         uint16_t notificationSize;
         uint16_t measurementSize;

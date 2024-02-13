@@ -94,16 +94,16 @@ void MTi3::setDefaultOptionFlags() {
     goToConfig();
 
     /* OPTION FLAGS - as default we want the MTI-3: 
-        - do not go to measurement mode on startup - set DisableAutoMeasurement (0x00000002)
+        - go to measurement mode on startup - clear DisableAutoMeasurement (0x00000002)
         - do not enable AHS mode (active heading stabilization), which does not use magnetometer - clear EnableAhs (0x00000010)
-        - enable configuration mode on startup - set EnableConfigMessageAtStartup (0x00000200)
+        - enable configuration message on startup - set EnableConfigMessageAtStartup (0x00000200)
        so we have two 8-byte datas, first the SetFlags then the ClearFlags, thus:
-       | 0x00 0x00 0x02 0x02 | 0x00 0x00 0x00 0x10 |
+       | 0x00 0x00 0x02 0x00 | 0x00 0x00 0x00 0x12 |
     */
 
     // default option flags reduced xbus message with extra char for checksum
-    char setDefOptFlags[12] = {XSENS_CONTROL_PIPE, xbus->MesID::SETOPTIONFLAG, '\x08', /**/ '\x00', '\x00', '\x02', '\x02', 
-                                                                                        /**/ '\x00', '\x00', '\x00', '\x10', 
+    char setDefOptFlags[12] = {XSENS_CONTROL_PIPE, xbus->MesID::SETOPTIONFLAG, '\x08', /**/ '\x00', '\x00', '\x02', '\x00', 
+                                                                                        /**/ '\x00', '\x00', '\x00', '\x12', 
                                                                                         /**/ '\x00'};
     sendMessage(setDefOptFlags, sizeof(setDefOptFlags));
     xbus->readUntilAck(xbus->MesID::OPTIONFLAG, 500);
@@ -296,4 +296,13 @@ void MTi3::logAck(std::fstream* fs) {
     char hdr[2] = {'\xFA', '\xFF'};
     fs->write(hdr, sizeof(hdr));
     fs->write(xbus->datanotif, xbus->notificationSize);
+}
+
+bool MTi3::waitUntilMessage(uint8_t id, unsigned int timeout_ms) {
+    uint8_t id_ret = xbus->readUntilAck(id, timeout_ms);
+    if (id_ret == id) {
+        return true;
+    } else {
+        return false;
+    }
 }

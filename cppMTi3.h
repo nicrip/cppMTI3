@@ -29,6 +29,7 @@ class MTi3 {
         bool readMeasurement();
         bool readLogMeasurement(std::fstream* fs);
         void logAck(std::fstream* fs);
+        bool waitUntilMessage(uint8_t id, unsigned int timeout_ms);
         float getTemperature() {
             return xbus->temperature;
         }

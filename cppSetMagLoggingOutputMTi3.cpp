@@ -12,6 +12,7 @@ int main()
     mti.printDeviceInfo();
     mti.printOptionFlags();
     mti.printAvailableFilterProfiles();
+    // mti.setFilterProfile(50);
     mti.printCurrentFilterProfile();
     mti.setDefaultMagneticOutputConfiguration();
 }
