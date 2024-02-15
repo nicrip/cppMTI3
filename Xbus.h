@@ -31,7 +31,7 @@ class Xbus {
         void readPipeNotif();
         void readPipeMeas();
         void parseMTData2(char *data, const uint8_t datalength);
-        uint8_t parseNotification(char *notif, const uint8_t notiflength);
+        uint8_t parseNotification(char *notif, const uint16_t notiflength);
         // Swap the endianness of the data such that the float value can be printed
         void dataswapendian(char *data, uint8_t length);
         void parseSelfTestResults(std::bitset<16> bit_results);
@@ -93,6 +93,10 @@ class Xbus {
             REQFILTERPROFILE = '\x64',
             SETFILTERPROFILE = '\x64',
             REQFILTERPROFILEACK = '\x65',
+
+            //eMTS Messages
+            REQEMTS = '\x90',
+            EMTS = '\x91',
         };
 
         // Data codes, default system is Single precision IEEE 32-bit floating point number with
@@ -147,8 +151,9 @@ class Xbus {
 
         bool print_raw;
         
-        char datanotif[max_msg_size];                // Used to store content read from the Notification Pipe
-        char datameas[max_msg_size];                 // Used to store content read from the Measurement Pipe
+        char datanotif[max_msg_size];       // Used to store content read from the Notification Pipe
+        char datameas[max_msg_size];        // Used to store content read from the Measurement Pipe
+        char datameas_copy[max_msg_size];   // Used to store content read from the Measurement Pipe
         char status[4];                     // Used to store indicators of the Status Pipe
         uint16_t notificationSize;
         uint16_t measurementSize;

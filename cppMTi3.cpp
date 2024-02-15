@@ -306,3 +306,12 @@ bool MTi3::waitUntilMessage(uint8_t id, unsigned int timeout_ms) {
         return false;
     }
 }
+
+void MTi3::printeMTS() {
+    goToConfig();
+
+    // reqeMTS reduced xbus message with extra char for checksum
+    char reqeMTS[6] = {XSENS_CONTROL_PIPE, xbus->MesID::REQEMTS, '\x02', '\x00', '\xFF', '\x00'};
+    sendMessage(reqeMTS, sizeof(reqeMTS));
+    xbus->readUntilAck(xbus->MesID::EMTS, 500);
+}

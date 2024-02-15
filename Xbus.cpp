@@ -32,7 +32,8 @@ bool Xbus::read() {
     }
     if (measurementSize > 0) { // New measurement packet available to be read
         readPipeMeas();
-        parseMTData2(datameas, measurementSize);
+        memcpy(datameas_copy, datameas, max_msg_size); // Create a copy of the data
+        parseMTData2(datameas_copy, measurementSize);
         // new measurement read
         return(true);
     } else {
@@ -52,7 +53,8 @@ uint8_t Xbus::readUntilAck(uint8_t opcode, int timeout) {
         }
         if (measurementSize > 0) { // New measurement packet available to be read
             readPipeMeas();
-            parseMTData2(datameas, measurementSize);
+            memcpy(datameas_copy, datameas, max_msg_size); // Create a copy of the data
+            parseMTData2(datameas_copy, measurementSize);
         } else {
         }
         if (retcode == opcode) {
@@ -135,7 +137,7 @@ void Xbus::readPipeMeas() {
 }
 
 // Parse the most common notification messages
-uint8_t Xbus::parseNotification(char *notif, uint8_t notiflength) {
+uint8_t Xbus::parseNotification(char *notif, uint16_t notiflength) {
     uint8_t notifID = notif[0];
     switch (notifID) {
         
@@ -190,14 +192,18 @@ uint8_t Xbus::parseNotification(char *notif, uint8_t notiflength) {
             parseSelfTestResults(bit_results);
             return (SELFTESTRESULTS);
         } case (uint8_t)MesID::ERROR: {
-            std::cout << "--- Received Error (0x42): ";
-            std::cout << "0x" << std::setfill('0') << std::setw(2) << std::right << std::hex << int(notif[2]) << " ---" << std::endl;
-            parseError(int(notif[2]));
+            if (print_raw) {
+                std::cout << "--- Received Error (0x42): ";
+                std::cout << "0x" << std::setfill('0') << std::setw(2) << std::right << std::hex << int(notif[2]) << " ---" << std::endl;
+                parseError(int(notif[2]));
+            }
             return (ERROR);
         } case (uint8_t)MesID::WARNING: {
-            std::cout << "--- Received Warning (0x43): ";
-            uint32_t warn = (uint32_t)notif[5] | ((uint32_t)notif[4] << 8);
-            std::cout << "0x" << std::setfill('0') << std::setw(2) << std::right << std::hex << warn << " ---" << std::endl;
+            if (print_raw) {
+                std::cout << "--- Received Warning (0x43): ";
+                uint32_t warn = (uint32_t)notif[5] | ((uint32_t)notif[4] << 8);
+                std::cout << "0x" << std::setfill('0') << std::setw(2) << std::right << std::hex << warn << " ---" << std::endl;
+            }
             return (WARNING);
         
         // Device-Specific Messages
@@ -291,8 +297,15 @@ uint8_t Xbus::parseNotification(char *notif, uint8_t notiflength) {
 
         // eMTS
 
-        } case 0x91: {
+        } case (uint8_t)MesID::EMTS: {
             std::cout << "--- Received eMTS Message (0x91) ---" << std::endl;
+            for (int i = 0; i < notiflength; i++) {
+                std::cout << "0x" << std::setfill('0') << std::setw(2) << std::right << std::hex << (int)((uint8_t)notif[i]);
+                if (i < notiflength-1) {
+                    std::cout << ":";
+                }
+            }
+            std::cout << std::endl;
             return(0x91);
           
         // Default
